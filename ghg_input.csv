@@ -1,0 +1,4 @@
+site,datetime.EST,HS.mCH4.before,HS.mCO2.before,HS.mN2O.before,HS.mCH4.after,HS.mCO2.after,HS.mN2O.after,Temp.insitu,Temp.equil,Alkalinity.measured,Volume.gas,Volume.water,Bar.pressure,Tw,v_ms,slope,SAL,CO2_air_ppm,CH4_air_ppm,N2O_air_ppm
+[-],[YYYY-MM-DD HH:MM],[ppmv],[ppmv],[ppmv],[ppmv],[ppmv],[ppmv],[degC],[degC],[umol/L],[mL],[mL],[kPa],[degC],[m/s],[m/m],[PSU],[ppm],[ppm],[ppm]
+Site ID,Sample date/time,CH4 headspace before equil.,CO2 headspace before equil.,N2O headspace before equil.,CH4 headspace after equil.,CO2 headspace after equil.,N2O headspace after equil.,In-situ water temp,Equilibration temp,Total alkalinity,Headspace gas volume,Sample water volume,Barometric pressure,In-situ water temp (=Temp.insitu),Mean flow velocity,Channel slope,Salinity,Atmospheric CO2 (default 423),Atmospheric CH4 (default 1.93),Atmospheric N2O (default 0.338)
+Site1,2024/6/30 00:00,1.93,423,0.338,,,,,,,,,,,,,,423,1.93,0.338

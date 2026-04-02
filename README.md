@@ -1,4 +1,4 @@
-# GHG_inland_waters
+# Inland water GHG calculations
 
 R script to calculate dissolved greenhouse gas concentrations and air-water fluxes (CO₂, CH₄, N₂O) from raw GC headspace data collected in inland freshwater systems.
 

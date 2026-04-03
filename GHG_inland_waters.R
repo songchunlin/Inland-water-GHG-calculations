@@ -242,34 +242,94 @@ Kh_CO2 <- gas_solubility(S = raw$SAL, t = raw$Tw, species = "CO2")
 Kh_CH4 <- gas_solubility(S = raw$SAL, t = raw$Tw, species = "CH4")
 Kh_N2O <- gas_solubility(S = raw$SAL, t = raw$Tw, species = "N2O")
 
-# ── 5. Gas transfer velocity (Raymond et al. energy dissipation model) ────────
-# Schmidt numbers (Wanninkhof 1992 freshwater polynomials)
+# ── 5. Gas transfer velocity ────────
+# ── 5a. Schmidt numbers ───────────────────────────────────────────────────────
+# Schmidt number (Sc) = kinematic viscosity / molecular diffusivity of the gas.
+# Used to scale k600 to gas-specific piston velocity: k_gas = k600 × (Sc/600)^n
+# where n = -0.5 for rough surfaces (streams, wind-mixed lakes) or -2/3 for
+# smooth surfaces (calm lakes). n = -0.5 is used here.
+#
+# ACTIVE — Wanninkhof (1992), freshwater, 3rd-order polynomials:
 Sc_CO2 <- 1911.1 - 118.11*raw$Tw + 3.4527*raw$Tw^2 - 0.04132*raw$Tw^3
 Sc_CH4 <- 1897.8 - 114.28*raw$Tw + 3.2902*raw$Tw^2 - 0.03906*raw$Tw^3
 Sc_N2O <- 2055.6 - 137.11*raw$Tw + 4.3173*raw$Tw^2 - 0.05435*raw$Tw^3
 
-elevition <- 4700  # m; adjust if your site is at a different elevation
+# ALTERNATIVE — Wanninkhof (2014), freshwater, 4th-order polynomials (more accurate,
+# especially above 20°C; recommended for studies spanning a wide temperature range):
+#   Sc_CO2 <- 1923.6 - 125.06*raw$Tw + 4.3773*raw$Tw^2 - 0.085681*raw$Tw^3 + 0.00070284*raw$Tw^4
+#   Sc_CH4 <- 1909.4 - 120.78*raw$Tw + 4.1555*raw$Tw^2 - 0.080578*raw$Tw^3 + 0.00065777*raw$Tw^4
+#   Sc_N2O <- 2141.2 - 152.56*raw$Tw + 5.8963*raw$Tw^2 - 0.12411*raw$Tw^3  + 0.0010655*raw$Tw^4
+#   Reference: Wanninkhof R. (2014). Relationship between wind speed and gas exchange
+#   over the ocean revisited. Limnol. Oceanogr. Methods, 12, 351-362.
+#   https://doi.org/10.4319/lom.2014.12.351
+
+# ── 5b. k600 — streams and rivers ────────────────────────────────────────────
+# ACTIVE — Ulseth et al. (2019) two-regime energy-dissipation model.
+# eD [m²/s³] = g × v [m/s] × S [m/m]  (gravitational acceleration × velocity × slope)
+# The two-regime breakpoint (eD = 0.02 m²/s³) separates smooth low-gradient rivers
+# from turbulent high-gradient streams.  Output is k600 [m/d].
+# Reference: Ulseth A.J. et al. (2019). Distinct air-water gas exchange regimes in
+#   low- and high-energy streams. Nature Geoscience, 12, 259–263.
+#   https://doi.org/10.1038/s41561-019-0324-8
+elevition <- 500  # m; ADJUST this to your own elevation
 g_accel <- 9.81 * (1 - 2*elevition/637100)          # gravitational acceleration (m/s²)
 eD      <- g_accel * raw$v_ms * raw$slope       # energy dissipation rate (m²/s³)
-k600    <- k600 <- ifelse(eD > 0.02,
-                          exp(6.43 + 1.18 * log(eD)),
-                          exp(3.10 + 0.35 * log(eD)))  # k600 (m/d), two-regime energy dissipation model for streams/rivers follows Ulseth et al. 2019, https://doi.org/10.1038/s41561-019-0324-8
 
-# ── Wind-based k600 alternatives for LAKES and RESERVOIRS ────────────────────
-# Replace the eD block above with one of the following if studying a lentic system.
-# U10 = wind speed at 10 m height (m/s); replace raw$U10 with your column name.
+k600 <- ifelse(eD > 0.02,
+               exp(6.43 + 1.18 * log(eD)),      # high-energy / turbulent streams
+               exp(3.10 + 0.35 * log(eD)))       # low-energy  / smooth rivers
+
+# ALTERNATIVE stream/river k600 models (replace the active block above):
+# All equations below assume v = velocity [m/s], d = mean depth [m], S = slope [m/m].
+# Conversion: cm/h × 24/100 = m/d
+#
+# Raymond et al. (2012) — single power-law, does not distinguish energy regimes:
+#   k600 <- v_ms*slope*2841 + 2.02  # V*S*2841±107 + 2.02±0.209
+#   Reference: Raymond P.A. et al. (2012). Scaling the gas transfer velocity and
+#   hydraulic geometry in streams and small rivers. Limnol. Oceanogr. Fluids Environ.,
+#   2, 41-53. https://doi.org/10.1215/21573689-1597669
+
+
+# ── 5c. k600 alternatives for LAKES and RESERVOIRS ───────────────────────────
+# Replace the entire 5b block above with one of the following for lentic systems.
+# U10 = wind speed at 10 m height [m/s]; add a U10 column to ghg_input.csv.
+# Lake_area = surface area [km²]; add a Lake_area column if using Read et al. (2012).
 #
 # Cole & Caraco (1998) — widely used for lakes, low-to-moderate wind:
-#   k600 <- 2.07 + 0.215 * raw$U10^1.7                        # cm/h
-#   k600 <- k600 * 24 / 100                                    # convert to m/d
+#   k600 <- 2.07 + 0.215 * raw$U10^1.7                     # cm/h
+#   k600 <- k600 * 24 / 100                                 # m/d
+#   Reference: Cole J.J. & Caraco N.F. (1998). Atmospheric exchange of carbon dioxide
+#   in a low-wind oligotrophic lake measured by the addition of SF6. Limnol. Oceanogr.,
+#   43(4), 647-656. https://doi.org/10.4319/lo.1998.43.4.0647
 #
-# Wanninkhof (1992) — originally oceanic, also applied to large lakes:
-#   k600 <- 0.31 * raw$U10^2 * (600/660)^(-0.5)               # cm/h (Sc_ref = 660 at 20°C)
-#   k600 <- k600 * 24 / 100                                    # convert to m/d
+# Wanninkhof (1992) — originally oceanic, commonly applied to large lakes:
+#   k600 <- 0.31 * raw$U10^2                                # cm/h (Sc normalised to 660)
+#   k600 <- k600 * (600/660)^(-0.5) * 24 / 100             # scale to Sc=600, convert m/d
+#   Reference: Wanninkhof R. (1992). Relationship between wind speed and gas exchange
+#   over the ocean. J. Geophys. Res., 97(C5), 7373-7382.
 #
-# MacIntyre et al. (2010) — lakes with fetch/stability correction (recommended for
-#   reservoirs and large lakes where surface buoyancy flux matters):
-#   k600 <- 0.0277 * raw$U10^2 + 0.216                        # m/d (direct)
+# Crusius & Wanninkhof (2003) — two-regime wind model for lakes:
+#   k600 <- ifelse(raw$U10 < 3.7,
+#                  0.72 * raw$U10,
+#                  4.33 * raw$U10 - 13.3)                   # cm/h
+#   k600 <- k600 * 24 / 100                                 # m/d
+#   Reference: Crusius J. & Wanninkhof R. (2003). Gas transfer velocities measured at
+#   low wind speed over a lake. Limnol. Oceanogr., 48(3), 1010-1017.
+#   https://doi.org/10.4319/lo.2003.48.3.1010
+#
+# Read et al. (2012) — wind + lake area; accounts for fetch in small lakes:
+#   k600 <- 2.51 + 1.48 * raw$U10 + 0.39 * raw$U10 * log10(raw$Lake_area) # cm/h
+#   k600 <- k600 * 24 / 100                                 # m/d
+#   Reference: Read J.S. et al. (2012). Lake-size dependency of wind shear and convection
+#   as controls on gas exchange. Geophys. Res. Lett., 39, L09405.
+#   https://doi.org/10.1029/2012GL051886
+#
+# MacIntyre et al. (2010) — wind + buoyancy flux; recommended for stratified reservoirs:
+#   k600 <- 0.0277 * raw$U10^2 + 0.216                      # m/d (direct)
+#   Reference: MacIntyre S. et al. (2010). Buoyancy flux, turbulence, and the gas
+#   transfer coefficient in a stratified lake. Geophys. Res. Lett., 37, L24604.
+#   https://doi.org/10.1029/2010GL044164
+# ─────────────────────────────────────────────────────────────────────────────
 
 kCO2 <- k600 * (Sc_CO2 / 600)^(-0.5)           # gas-specific piston velocity (m/d)
 kCH4 <- k600 * (Sc_CH4 / 600)^(-0.5)

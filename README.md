@@ -119,7 +119,7 @@ where eD = g × v × S (gravitational acceleration × flow velocity × channel s
 
 | Model | Equation | Notes |
 |---|---|---|
-| Raymond et al. (2012) | k<sub>600</sub> = 2841 × V × S + 2.02 (m/d) | linear model using velocity and slope, k600 = VS × 2841 ± 107+2.02 ± 0.209; commenly used |
+| Raymond et al. (2012) | k<sub>600</sub> = 2841 × V × S + 2.02 (m/d) | Linear model using velocity and slope, k600 = VS × 2841 ± 107+2.02 ± 0.209; commenly used |
 
 **Alternative lake/reservoir models** (commented out in section 5c of the script):
 

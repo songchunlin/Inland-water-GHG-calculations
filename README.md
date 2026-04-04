@@ -83,7 +83,7 @@ Results are written to `ghg_results.csv` in the same directory.
 - `kCO2_md`, `kCH4_md`, `kN2O_md`: gas-specific piston velocities (m/d)
 
 **Henry's solubility**
-- `Kh_CO2_mmolm3bar`, `Kh_CH4_mmolm3bar`, `Kh_N2O_mmolm3bar`: solubility constants (mmol/m³/bar) from `marelac::gas_solubility()`
+- `Kh_CO2_mmolm3bar`, `Kh_CH4_mmolm3bar`, `Kh_N2O_mmolm3bar`: solubility constants (mmol/m<sup>3</sup>/bar) from `marelac::gas_solubility()`
 
 **Air-water fluxes**
 - `FCO2_mmolm2d`, `FCH4_mmolm2d`, `FN2O_mmolm2d`: fluxes in mmol/m<sup>2</sup>/d. Positive values indicate outgassing to the atmosphere; negative values indicate uptake.
@@ -99,7 +99,7 @@ The script also outputs CO<sub>2</sub> from the simple mass-balance method along
 CH<sub>4</sub> and N<sub>2</sub>O do not participate in carbonate equilibria, so a straightforward mass balance between the gas and liquid phases is used. Henry's Law constants are from Sander (2015).
 
 ### Henry's solubility constants (K<sub>h</sub>)
-`marelac::gas_solubility()` returns the solubility coefficient K<sub>0</sub> [mmol/m³/bar], which is equivalent to the Henry's volatility constant K<sub>h</sub> in the form [gas]_aq / p_gas — the correct form for the flux equation F = k × Δp × K<sub>h</sub>. Using K<sub>0</sub> as K<sub>h</sub> is standard practice in inland water GHG studies. The underlying equations are Weiss (1974) for CO<sub>2</sub>, Wiesenburg & Guinasso (1979) for CH<sub>4</sub>, and Weiss & Price (1980) for N<sub>2</sub>O, all of which are valid for freshwater (SAL = 0) and brackish systems across the 0–30°C range.
+`marelac::gas_solubility()` returns the solubility coefficient K<sub>0</sub> [mmol/m<sup>3</sup>/bar], which is equivalent to the Henry's volatility constant K<sub>h</sub> in the form [gas]_aq / p_gas — the correct form for the flux equation F = k × Δp × K<sub>h</sub>. Using K<sub>0</sub> as K<sub>h</sub> is standard practice in inland water GHG studies. The underlying equations are Weiss (1974) for CO<sub>2</sub>, Wiesenburg & Guinasso (1979) for CH<sub>4</sub>, and Weiss & Price (1980) for N<sub>2</sub>O, all of which are valid for freshwater (SAL = 0) and brackish systems across the 0–30°C range.
 
 Note that K<sub>0</sub> from `marelac` differs from the Sander (2015) K<sub>h</sub> used inside `Rheadspace_GHG()` for the headspace equilibrium step. Both formulations are appropriate for their respective purposes; the partial pressures produced by the headspace calculation are independent of which K<sub>h</sub> is used for the flux step.
 
@@ -108,7 +108,7 @@ Schmidt numbers (Sc = kinematic viscosity / molecular diffusivity) are used to s
 
 ### Gas transfer velocity (k<sub>600</sub>)
 
-**Active — streams and rivers:** The two-regime energy-dissipation model of Ulseth et al. (2019) is used as the default:
+**Active — streams and rivers:** The two-regime energy-dissipation model of Ulseth et al. (2019) is used as the default and recommended method:
 
 - **eD > 0.02 m<sup>2</sup>/s<sup>3</sup>** (turbulent, high-gradient streams): `k600 = exp(6.43 + 1.18 × ln(eD))`
 - **eD ≤ 0.02 m<sup>2</sup>/s<sup>3</sup>** (smooth, low-gradient rivers): `k600 = exp(3.10 + 0.35 × ln(eD))`
@@ -119,7 +119,7 @@ where eD = g × v × S (gravitational acceleration × flow velocity × channel s
 
 | Model | Equation | Notes |
 |---|---|---|
-| Raymond et al. (2012) | k<sub>600</sub> = 2841 × V × S + 2.02 (m/d) | Linear model using velocity and slope, k600 = VS × 2841 ± 107+2.02 ± 0.209; commenly used |
+| Raymond et al. (2012) | k<sub>600</sub> = 2841 × V × S + 2.02 (m/d) | Linear model using velocity and slope, k600 = VS × 2841 ± 107+2.02 ± 0.209; also widely used |
 
 **Alternative lake/reservoir models** (commented out in section 5c of the script):
 
@@ -149,7 +149,7 @@ Modifications: freshwater-only carbonate constants; Henry's Law constants update
 
 ## References
 
-Cole, J.J. & Caraco, N.F. (1998). Atmospheric exchange of carbon dioxide in a low-wind oligotrophic lake measured by the addition of SF₆. *Limnology and Oceanography*, 43(4), 647–656.
+Cole, J.J. & Caraco, N.F. (1998). Atmospheric exchange of carbon dioxide in a low-wind oligotrophic lake measured by the addition of SF<sub>6</sub>. *Limnology and Oceanography*, 43(4), 647–656.
 
 Crusius, J. & Wanninkhof, R. (2003). Gas transfer velocities measured at low wind speed over a lake. *Limnology and Oceanography*, 48(3), 1010–1017.
 

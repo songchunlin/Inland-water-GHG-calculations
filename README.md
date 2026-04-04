@@ -6,7 +6,7 @@ R script to calculate dissolved greenhouse gas concentrations and air-water flux
 
 `GHG_inland_waters.R` takes raw field measurements and gas chromatograph headspace data as input and returns a single CSV file containing dissolved GHG concentrations, gas transfer velocities, Henry's solubility constants, and air-water fluxes. It is designed for streams and rivers but includes commented-out wind-based alternatives for lakes and reservoirs.
 
-The concentration calculations are built around the complete headspace method for CO<sub>2</sub>, which accounts for carbonate equilibrium in the equilibration vessel and is more accurate than the simple mass-balance approach, particularly at high alkalinity or high CO<sub>2</sub> concentrations. CH<sub>4</sub> and N<sub>2</sub>O are calculated using a simple headspace mass balance, which is appropriate for these gases because they do not participate in acid-base equilibria in water.
+The concentration calculations are built around the complete headspace method for CO<sub>2</sub>, which accounts for carbonate equilibrium in the equilibration vessel and is more accurate than the simple headspace calculation approach, particularly at high alkalinity or high CO<sub>2</sub> concentrations. CH<sub>4</sub> and N<sub>2</sub>O are calculated using a simple headspace mass balance, which is appropriate for these gases because they do not participate in acid-base equilibria in water.
 
 ## Repository contents
 

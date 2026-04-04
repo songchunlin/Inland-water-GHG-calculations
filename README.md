@@ -104,7 +104,7 @@ CH<sub>4</sub> and N<sub>2</sub>O do not participate in carbonate equilibria, so
 Note that K<sub>0</sub> from `marelac` differs from the Sander (2015) K<sub>h</sub> used inside `Rheadspace_GHG()` for the headspace equilibrium step. Both formulations are appropriate for their respective purposes; the partial pressures produced by the headspace calculation are independent of which K<sub>h</sub> is used for the flux step.
 
 ### Schmidt numbers
-Schmidt numbers (Sc = kinematic viscosity / molecular diffusivity) are used to scale k<sub>600</sub> to a gas-specific piston velocity: k_gas = k<sub>600</sub> × (Sc/600)^−0.5, where the exponent −0.5 applies to wind- or turbulence-mixed surfaces. The script uses 3rd-order freshwater polynomials from Wanninkhof (1992) by default. A commented-out alternative using 4th-order polynomials from Wanninkhof (2014) is also provided and is more accurate across a wider temperature range, particularly above 20°C.
+Schmidt numbers (Sc = kinematic viscosity / molecular diffusivity) are used to scale k<sub>600</sub> to a gas-specific piston velocity: k_gas = k<sub>600</sub> × (Sc/600)<sup>−0.5</sup>, where the exponent −0.5 applies to wind- or turbulence-mixed surfaces. The script uses 3rd-order freshwater polynomials from Wanninkhof (1992) by default. A commented-out alternative using 4th-order polynomials from Wanninkhof (2014) is also provided and is more accurate across a wider temperature range, particularly above 20°C.
 
 ### Gas transfer velocity (k<sub>600</sub>)
 

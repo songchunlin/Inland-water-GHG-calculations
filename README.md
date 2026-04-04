@@ -136,7 +136,7 @@ Fluxes are calculated as:
 
 F = k_gas × (pGAS_water − pGAS_air) × K<sub>h</sub>
 
-where pGAS_water is the dissolved partial pressure (µatm) from the headspace calculation, pGAS_air is the atmospheric partial pressure (atmospheric concentration × barometric pressure), and K<sub>h</sub> is the Henry's solubility constant (mmol/m³/bar) from `marelac::gas_solubility()`. Pressure units are converted from µatm to bar internally.
+where pGAS_water is the dissolved partial pressure (µatm) from the headspace calculation, pGAS_air is the atmospheric partial pressure (atmospheric concentration × barometric pressure), and K<sub>h</sub> is the Henry's solubility constant (mmol/m<sup>3</sup>/bar) from `marelac::gas_solubility()`. Pressure units are converted from µatm to bar internally.
 
 ## Code provenance
 

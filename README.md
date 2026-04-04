@@ -6,7 +6,7 @@ R script to calculate dissolved greenhouse gas concentrations and air-water flux
 
 `GHG_inland_waters.R` takes raw field measurements and gas chromatograph headspace data as input and returns a single CSV file containing dissolved GHG concentrations, gas transfer velocities, Henry's solubility constants, and air-water fluxes. It is designed for streams and rivers but includes commented-out wind-based alternatives for lakes and reservoirs.
 
-The concentration calculations are built around the complete headspace method for CO<sub>2</sub>, which accounts for carbonate equilibrium in the equilibration vessel and is more accurate than the simple headspace calculation approach, particularly at high alkalinity or high CO<sub>2</sub> concentrations. CH<sub>4</sub> and N<sub>2</sub>O are calculated using a simple headspace mass balance, which is appropriate for these gases because they do not participate in acid-base equilibria in water.
+The concentration calculations are built around the complete headspace method for CO<sub>2</sub>, which accounts for carbonate equilibrium in the equilibration vessel and is more accurate than the simple headspace calculation approach, particularly at high alkalinity or high CO<sub>2</sub> concentrations. CH<sub>4</sub> and N<sub>2</sub>O are calculated using a simple headspace method, which is appropriate for these gases because they do not participate in acid-base equilibria in water.
 
 ## Repository contents
 
@@ -63,9 +63,9 @@ Results are written to `ghg_results.csv` in the same directory.
 | `v_ms` | m/s | Mean flow velocity (streams/rivers; see note for lakes) |
 | `slope` | m/m | Channel slope (streams/rivers; see note for lakes) |
 | `SAL` | PSU | Salinity (set to 0 for freshwater) |
-| `CO2_air_ppm` | ppm | Atmospheric CO<sub>2</sub> concentration (global mean: 423) |
-| `CH4_air_ppm` | ppm | Atmospheric CH<sub>4</sub> concentration (global mean: 1.93) |
-| `N2O_air_ppm` | ppm | Atmospheric N<sub>2</sub>O concentration (global mean: 0.338) |
+| `CO2_air_ppm` | ppm | Atmospheric CO<sub>2</sub> concentration (global mean in 2024: 423) |
+| `CH4_air_ppm` | ppm | Atmospheric CH<sub>4</sub> concentration (global mean in 2024: 1.93) |
+| `N2O_air_ppm` | ppm | Atmospheric N<sub>2</sub>O concentration (global mean in 2024: 0.338) |
 
 ## Output format
 

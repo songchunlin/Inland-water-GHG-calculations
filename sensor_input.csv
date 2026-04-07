@@ -1,0 +1,4 @@
+site,datetime.EST,CO2_sensor_ppm,CH4_sensor_ppm,N2O_sensor_ppm,Tw,v_ms,slope,SAL,Bar.pressure,CO2_air_ppm,CH4_air_ppm,N2O_air_ppm
+[-],[YYYY-MM-DD HH:MM],[ppmv],[ppmv],[ppmv],[degC],[m/s],[m/m],[PSU],[kPa],[ppm],[ppm],[ppm]
+Site ID,Sample date/time,Sensor CO2 reading,Sensor CH4 reading,Sensor N2O reading,In-situ water temp,Mean flow velocity,Channel slope,Salinity (0 for freshwater),Barometric pressure,Atmospheric CO2 (default 423),Atmospheric CH4 (default 1.93),Atmospheric N2O (default 0.338)
+Sample1,2024/5/22 10:00,850.5,2.35,0.42,3.5,0.465,0.0191,0.47,57.76,423,1.93,0.338

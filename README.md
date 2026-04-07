@@ -138,6 +138,50 @@ F = k_gas × (pGAS_water − pGAS_air) × K<sub>h</sub>
 
 where pGAS_water is the dissolved partial pressure (µatm) from the headspace calculation, pGAS_air is the atmospheric partial pressure (atmospheric concentration × barometric pressure), and K<sub>h</sub> is the Henry's solubility constant (mmol/m<sup>3</sup>/bar) from `marelac::gas_solubility()`. Pressure units are converted from µatm to bar internally.
 
+---
+
+## Sensor-based method
+
+If dissolved GHG concentrations are measured directly by in-situ water sensors rather than by headspace equilibration and GC analysis, the headspace calculation step is skipped. The flux formula is identical; only the source of pGAS_water differs.
+
+### Unit clarification
+
+Most dissolved GHG sensors (e.g., Pro-Oceanus CO2-Pro, Contros HydroC, Franatech METS) report in **ppmv** — the gas-phase mole fraction at equilibrium, equivalent to µatm at 1 atm. This is not the same as a dissolved concentration in µmol/L. The conversion to partial pressure requires a local barometric pressure correction:
+
+pGAS [µatm] = sensor_ppm [ppmv] × P_total [atm]
+
+If your sensor outputs in other units, convert before running the script:
+
+| Sensor unit | Conversion to µatm |
+|---|---|
+| µmol/L | pGAS = ([GAS] / Kh) × 10⁶ × 0.986923 |
+| nmol/L | pGAS = ([GAS] / 1000 / Kh) × 10⁶ × 0.986923 |
+| mg/L | Convert to µmol/L first (divide by MW: CO₂ = 44.01, CH₄ = 16.04, N₂O = 44.01 g/mol), then use µmol/L formula |
+
+### Sensor input file
+
+The sensor pathway reads from a separate file `sensor_input.csv` with the following columns:
+
+| Column | Units | Description |
+|---|---|---|
+| `site` | — | Site identifier |
+| `datetime.EST` | YYYY-MM-DD HH:MM | Sample date/time |
+| `CO2_sensor_ppm` | ppmv | Sensor CO₂ reading |
+| `CH4_sensor_ppm` | ppmv | Sensor CH₄ reading |
+| `N2O_sensor_ppm` | ppmv | Sensor N₂O reading |
+| `Tw` | °C | In-situ water temperature |
+| `v_ms` | m/s | Mean flow velocity |
+| `slope` | m/m | Channel slope |
+| `SAL` | PSU | Salinity |
+| `Bar.pressure` | kPa | Barometric pressure |
+| `CO2_air_ppm` | ppm | Atmospheric CO₂ |
+| `CH4_air_ppm` | ppm | Atmospheric CH₄ |
+| `N2O_air_ppm` | ppm | Atmospheric N₂O |
+
+### Sensor output file
+
+Results are written to `sensor_ghg_results.csv` and include sensor ppmv values, derived partial pressures (µatm), dissolved concentrations (µmol/L), gas transfer velocities, Henry's solubility constants, and air-water fluxes (mmol/m²/d) — the same column structure as `ghg_results.csv`.
+
 ## Code provenance
 
 `Rheadspace_GHG()` is derived from two sources:

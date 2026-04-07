@@ -380,3 +380,145 @@ results <- bind_cols(
 
 write_csv(results, "ghg_results.csv")
 message("Done. Results written to ghg_results.csv")
+
+# =============================================================================
+# SENSOR-BASED METHOD
+# For use when dissolved GHG concentrations are measured directly by in-situ
+# water sensors (e.g., Pro-Oceanus CO2-Pro, Contros HydroC, Franatech METS,
+# Turner Designs SCUFA) instead of by headspace equilibration and GC analysis.
+# =============================================================================
+#
+# ── Unit clarification ────────────────────────────────────────────────────────
+# Most dissolved GHG sensors report in ppmv (parts per million by volume), which
+# is the gas-phase mole fraction at equilibrium — NOT a dissolved concentration
+# in µmol/L or mg/L.  ppmv is equivalent to µatm at exactly 1 atm, but must be
+# corrected for local barometric pressure:
+#
+#   pGAS [µatm] = sensor_ppm [ppmv] × P_total [atm]
+#
+# This partial pressure is then used directly in the flux equation, identical to
+# the headspace pathway.  If your sensor outputs in other units, convert first:
+#
+#   µmol/L → µatm :  pGAS = ([GAS] / Kh) × 1e6 × 0.986923
+#                     where Kh is in mmol/m³/bar  (see section 4 above)
+#   nmol/L → µatm :  pGAS = ([GAS] / 1000 / Kh) × 1e6 × 0.986923
+#   mg/L   → µmol/L: [GAS]_umolL = [GAS]_mgL / molecular_weight × 1000
+#                     (MW: CO2 = 44.01, CH4 = 16.04, N2O = 44.01 g/mol)
+#
+# ── Required columns in sensor_input.csv ──────────────────────────────────────
+#   site            Site identifier
+#   datetime.EST    Sample date/time [YYYY-MM-DD HH:MM]
+#   CO2_sensor_ppm  Sensor-measured dissolved CO2 [ppmv]
+#   CH4_sensor_ppm  Sensor-measured dissolved CH4 [ppmv]
+#   N2O_sensor_ppm  Sensor-measured dissolved N2O [ppmv]
+#   Tw              In-situ water temperature [°C]
+#   v_ms            Mean flow velocity [m/s]   (streams/rivers)
+#   slope           Channel slope [m/m]         (streams/rivers)
+#   SAL             Salinity [PSU]
+#   Bar.pressure    Barometric pressure [kPa]
+#   CO2_air_ppm     Atmospheric CO2 [ppm]  (global mean: 423)
+#   CH4_air_ppm     Atmospheric CH4 [ppm]  (global mean: 1.93)
+#   N2O_air_ppm     Atmospheric N2O [ppm]  (global mean: 0.338)
+# ─────────────────────────────────────────────────────────────────────────────
+ 
+# ── S1. Load sensor data ──────────────────────────────────────────────────────
+sensor <- read_csv("sensor_input.csv", show_col_types = FALSE)
+sensor <- sensor[!is.na(sensor$site), ]
+sensor_num_cols <- setdiff(names(sensor), c("site", "datetime.EST"))
+sensor[sensor_num_cols] <- lapply(sensor[sensor_num_cols], as.numeric)
+ 
+# ── S2. Convert sensor ppmv to partial pressure [µatm] ───────────────────────
+# pGAS [µatm] = sensor_ppm [ppmv] × P_total [atm]
+# This accounts for local barometric pressure — important at high altitude.
+P_atm_s <- sensor$Bar.pressure / 101.325   # kPa → atm
+ 
+pCO2_sensor_uatm <- sensor$CO2_sensor_ppm * P_atm_s
+pCH4_sensor_uatm <- sensor$CH4_sensor_ppm * P_atm_s
+pN2O_sensor_uatm <- sensor$N2O_sensor_ppm * P_atm_s
+ 
+# ── S3. Dissolved concentrations from sensor partial pressures ────────────────
+# [GAS] [µmol/L] = Kh [mmol/m³/bar] × pGAS [µatm] × 1e-6 [µatm→atm] / 0.986923 [atm→bar]
+# (1 mmol/m³ = 1 µmol/L)
+Kh_CO2_s <- gas_solubility(S = sensor$SAL, t = sensor$Tw, species = "CO2")
+Kh_CH4_s <- gas_solubility(S = sensor$SAL, t = sensor$Tw, species = "CH4")
+Kh_N2O_s <- gas_solubility(S = sensor$SAL, t = sensor$Tw, species = "N2O")
+ 
+CO2_conc_umolL <- Kh_CO2_s * pCO2_sensor_uatm * 1e-6 / 0.986923
+CH4_conc_umolL <- Kh_CH4_s * pCH4_sensor_uatm * 1e-6 / 0.986923
+N2O_conc_umolL <- Kh_N2O_s * pN2O_sensor_uatm * 1e-6 / 0.986923
+ 
+# ── S4. Schmidt numbers and gas transfer velocity ─────────────────────────────
+# Same Schmidt number polynomials and k600 model as the headspace pathway.
+# Swap in a different k600 model here if needed (see section 5b/5c above).
+Sc_CO2_s <- 1911.1 - 118.11*sensor$Tw + 3.4527*sensor$Tw^2 - 0.04132*sensor$Tw^3
+Sc_CH4_s <- 1897.8 - 114.28*sensor$Tw + 3.2902*sensor$Tw^2 - 0.03906*sensor$Tw^3
+Sc_N2O_s <- 2055.6 - 137.11*sensor$Tw + 4.3173*sensor$Tw^2 - 0.05435*sensor$Tw^3
+
+## k600s for streams and rivers
+g_accel_s <- 9.81 * (1 - 2*4700/637100)
+eD_s      <- g_accel_s * sensor$v_ms * sensor$slope
+k600_s    <- ifelse(eD_s > 0.02,
+                    exp(6.43 + 1.18 * log(eD_s)),
+                    exp(3.10 + 0.35 * log(eD_s)))
+
+## k600s for lakes and reserviors
+# Replace the k600s for streams and rivers block above with one of the following for lentic systems.
+# U10 = wind speed at 10 m height [m/s]; add a U10 column to ghg_input.csv.
+# Lake_area = surface area [km²]; add a Lake_area column if using Read et al. (2012).
+#
+# Cole & Caraco (1998) — widely used for lakes, low-to-moderate wind:
+#   k600 <- 2.07 + 0.215 * raw$U10^1.7                     # cm/h
+#   k600 <- k600 * 24 / 100                                 # m/d
+#   Reference: Cole J.J. & Caraco N.F. (1998). Atmospheric exchange of carbon dioxide
+#   in a low-wind oligotrophic lake measured by the addition of SF6. Limnol. Oceanogr.,
+#   43(4), 647-656. https://doi.org/10.4319/lo.1998.43.4.0647
+ 
+kCO2_s <- k600_s * (Sc_CO2_s / 600)^(-0.5)
+kCH4_s <- k600_s * (Sc_CH4_s / 600)^(-0.5)
+kN2O_s <- k600_s * (Sc_N2O_s / 600)^(-0.5)
+ 
+# ── S5. Air-water fluxes from sensor data ────────────────────────────────────
+# F [mmol/m²/d] = k [m/d] × (pGAS_water [µatm] - GAS_air [ppm] × P [atm])
+#                          × Kh [mmol/m³/bar] / 1e6 [µatm→atm] / 0.986923 [atm→bar]
+FCO2_s <- kCO2_s * (pCO2_sensor_uatm - sensor$CO2_air_ppm * P_atm_s) *
+           Kh_CO2_s / 1e6 / 0.986923
+FCH4_s <- kCH4_s * (pCH4_sensor_uatm - sensor$CH4_air_ppm * P_atm_s) *
+           Kh_CH4_s / 1e6 / 0.986923
+FN2O_s <- kN2O_s * (pN2O_sensor_uatm - sensor$N2O_air_ppm * P_atm_s) *
+           Kh_N2O_s / 1e6 / 0.986923
+ 
+# ── S6. Assemble and export sensor-based results ──────────────────────────────
+sensor_results <- tibble(
+  Site                  = sensor$site,
+  Timestamp             = as.character(sensor$datetime.EST),
+  CO2_sensor_ppm        = sensor$CO2_sensor_ppm,
+  CH4_sensor_ppm        = sensor$CH4_sensor_ppm,
+  N2O_sensor_ppm        = sensor$N2O_sensor_ppm,
+  pCO2_sensor_uatm      = pCO2_sensor_uatm,
+  pCH4_sensor_uatm      = pCH4_sensor_uatm,
+  pN2O_sensor_uatm      = pN2O_sensor_uatm,
+  CO2_conc_umolL        = CO2_conc_umolL,
+  CH4_conc_umolL        = CH4_conc_umolL,
+  N2O_conc_umolL        = N2O_conc_umolL,
+  Tw_C                  = sensor$Tw,
+  SAL                   = sensor$SAL,
+  k600_md               = k600_s,
+  Sc_CO2                = Sc_CO2_s,
+  Sc_CH4                = Sc_CH4_s,
+  Sc_N2O                = Sc_N2O_s,
+  kCO2_md               = kCO2_s,
+  kCH4_md               = kCH4_s,
+  kN2O_md               = kN2O_s,
+  CO2_air_ppm           = sensor$CO2_air_ppm,
+  CH4_air_ppm           = sensor$CH4_air_ppm,
+  N2O_air_ppm           = sensor$N2O_air_ppm,
+  Kh_CO2_mmolm3bar      = Kh_CO2_s,
+  Kh_CH4_mmolm3bar      = Kh_CH4_s,
+  Kh_N2O_mmolm3bar      = Kh_N2O_s,
+  FCO2_mmolm2d          = FCO2_s,
+  FCH4_mmolm2d          = FCH4_s,
+  FN2O_mmolm2d          = FN2O_s
+)
+ 
+write_csv(sensor_results, "sensor_ghg_results.csv")
+message("Done. Sensor-based results written to sensor_ghg_results.csv")

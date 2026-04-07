@@ -154,9 +154,9 @@ If your sensor outputs in other units, convert before running the script:
 
 | Sensor unit | Conversion to µatm |
 |---|---|
-| µmol/L | pGAS = ([GAS] / Kh) × 10⁶ × 0.986923 |
-| nmol/L | pGAS = ([GAS] / 1000 / Kh) × 10⁶ × 0.986923 |
-| mg/L | Convert to µmol/L first (divide by MW: CO₂ = 44.01, CH₄ = 16.04, N₂O = 44.01 g/mol), then use µmol/L formula |
+| µmol/L | pGAS = ([GAS] / Kh) × 10<sup>6</sup> × 0.986923 |
+| nmol/L | pGAS = ([GAS] / 1000 / Kh) × 10<sup>6</sup> × 0.986923 |
+| mg/L | Convert to µmol/L first (divide by MW: CO<sub>2</sub> = 44.01, CH<sub>4</sub> = 16.04, N<sub>2</sub>O = 44.01 g/mol), then use µmol/L formula |
 
 ### Sensor input file
 
@@ -166,21 +166,21 @@ The sensor pathway reads from a separate file `sensor_input.csv` with the follow
 |---|---|---|
 | `site` | — | Site identifier |
 | `datetime.EST` | YYYY-MM-DD HH:MM | Sample date/time |
-| `CO2_sensor_ppm` | ppmv | Sensor CO₂ reading |
-| `CH4_sensor_ppm` | ppmv | Sensor CH₄ reading |
-| `N2O_sensor_ppm` | ppmv | Sensor N₂O reading |
+| `CO2_sensor_ppm` | ppmv | Sensor CO<sub>2</sub> reading |
+| `CH4_sensor_ppm` | ppmv | Sensor CH<sub>4</sub> reading |
+| `N2O_sensor_ppm` | ppmv | Sensor N<sub>2</sub>O reading |
 | `Tw` | °C | In-situ water temperature |
 | `v_ms` | m/s | Mean flow velocity |
 | `slope` | m/m | Channel slope |
 | `SAL` | PSU | Salinity |
 | `Bar.pressure` | kPa | Barometric pressure |
-| `CO2_air_ppm` | ppm | Atmospheric CO₂ |
-| `CH4_air_ppm` | ppm | Atmospheric CH₄ |
-| `N2O_air_ppm` | ppm | Atmospheric N₂O |
+| `CO2_air_ppm` | ppm | Atmospheric CO<sub>2</sub> |
+| `CH4_air_ppm` | ppm | Atmospheric CH<sub>4</sub> |
+| `N2O_air_ppm` | ppm | Atmospheric N<sub>2</sub>O |
 
 ### Sensor output file
 
-Results are written to `sensor_ghg_results.csv` and include sensor ppmv values, derived partial pressures (µatm), dissolved concentrations (µmol/L), gas transfer velocities, Henry's solubility constants, and air-water fluxes (mmol/m²/d) — the same column structure as `ghg_results.csv`.
+Results are written to `sensor_ghg_results.csv` and include sensor ppmv values, derived partial pressures (µatm), dissolved concentrations (µmol/L), gas transfer velocities, Henry's solubility constants, and air-water fluxes (mmol/m<sup>2</sup>/d) — the same column structure as `ghg_results.csv`.
 
 ## Code provenance
 
